@@ -130,6 +130,7 @@ def load_dot_env_file(dot_env_path: Text) -> Dict:
     with open(dot_env_path, mode="rb") as fp:
         for line in fp:
             # maxsplit=1
+            #b表示字符串是bytes类型
             if b"=" in line:
                 variable, value = line.split(b"=", 1)
             elif b":" in line:
@@ -137,6 +138,7 @@ def load_dot_env_file(dot_env_path: Text) -> Dict:
             else:
                 raise exceptions.FileFormatError(".env format error")
 
+            #bytes类型转换为字符串,清除换行符，储存在env_variables_mapping
             env_variables_mapping[
                 variable.strip().decode("utf-8")
             ] = value.strip().decode("utf-8")
@@ -250,6 +252,7 @@ def load_module_functions(module) -> Dict[Text, Callable]:
     module_functions = {}
 
     for name, item in vars(module).items():
+        #遍历module,如果类型为FunctionType，添加到module_functions返回
         if isinstance(item, types.FunctionType):
             module_functions[name] = item
 
@@ -443,6 +446,7 @@ def convert_relative_project_root_dir(abs_path: Text) -> Text:
 
     """
     _project_meta = load_project_meta(abs_path)
+    #如果abs_path不以根目录为开头报错
     if not abs_path.startswith(_project_meta.RootDir):
         raise exceptions.ParamsError(
             f"failed to convert absolute path to relative path based on project_meta.RootDir\n"

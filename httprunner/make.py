@@ -154,6 +154,7 @@ def __ensure_testcase_module(path: Text) -> NoReturn:
 
 def convert_testcase_path(testcase_abs_path: Text) -> Tuple[Text, Text]:
     """convert single YAML/JSON testcase path to python file"""
+    #转换文件路径为_test.py
     testcase_new_path = ensure_file_abs_path_valid(testcase_abs_path)
 
     dir_path = os.path.dirname(testcase_new_path)
@@ -340,12 +341,15 @@ def make_testcase(testcase: Dict, dir_path: Text = None) -> Text:
     # ensure compatibility with testcase format v2
     testcase = ensure_testcase_v3(testcase)
 
-    # validate testcase format
+    # validate v3 testcase format： {'config': {},'teststeps': {}}
     load_testcase(testcase)
 
+    #获取文件所在位置
     testcase_abs_path = __ensure_absolute(testcase["config"]["path"])
     logger.info(f"start to make testcase: {testcase_abs_path}")
 
+    #传入.yaml/.json文件路径，获取_test.py文件绝对路径testcase_python_abs_path
+    #获取测试文件名，a_test转换为ATest，testcase_cls_name
     testcase_python_abs_path, testcase_cls_name = convert_testcase_path(
         testcase_abs_path
     )
@@ -510,6 +514,7 @@ def __make(tests_path: Text) -> NoReturn:
 
     """
     logger.info(f"make path: {tests_path}")
+    # 解析main_make传入的 文件/文件夹 生成待生成测试用例的文件列表test_files
     test_files = []
     if os.path.isdir(tests_path):
         files_list = load_folder_files(tests_path)
@@ -519,11 +524,14 @@ def __make(tests_path: Text) -> NoReturn:
     else:
         raise exceptions.TestcaseNotFound(f"Invalid tests path: {tests_path}")
 
+    # 遍历待生成测试用例的文件列表test_files
+    # 转化为_test.py文件添加到待运行测试文件列表 pytest_files_run_set
     for test_file in test_files:
         if test_file.lower().endswith("_test.py"):
             pytest_files_run_set.add(test_file)
             continue
 
+        #加载非_test.py的测试文件内容(.yaml/.json)，转化为dict内容返回为test_content
         try:
             test_content = load_test_file(test_file)
         except (exceptions.FileNotFound, exceptions.FileFormatError) as ex:
@@ -584,7 +592,6 @@ def __make(tests_path: Text) -> NoReturn:
                 f"Invalid test file: {test_file}\n"
                 f"reason: file content is neither testcase nor testsuite"
             )
-
 
 def main_make(tests_paths: List[Text]) -> List[Text]:
     if not tests_paths:
