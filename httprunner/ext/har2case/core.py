@@ -366,7 +366,7 @@ class HarParser(object):
             output_testcase_file = f"{harfile}.json"
             utils.dump_json(testcase, output_testcase_file)
         elif file_type == "YAML":
-            output_testcase_file = f"{harfile}.yml"
+            output_testcase_file = f"{harfile}.yaml"
             utils.dump_yaml(testcase, output_testcase_file)
         else:
             # default to generate pytest file
